@@ -1,11 +1,11 @@
 const CACHE_NAME = 'fiesta-custo-v1';
-// Lista de arquivos que serão salvos no celular para funcionar offline
+// Lista de arquivos que serão salvos no celular usando caminhos relativos (sem barras na frente)
 const ASSETS = [
   './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  'index.html',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 // Instala o Service Worker e armazena os arquivos no cache
@@ -34,6 +34,12 @@ self.addEventListener('activate', (e) => {
 
 // Intercepta as requisições: se estiver offline, busca o app direto do cache
 self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((cachedResponse) => {
+      return cachedResponse || fetch(e.request);
+    })
+  );
+});
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       return cachedResponse || fetch(e.request);
