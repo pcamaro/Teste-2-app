@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Custo Real - Fiesta GNV</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 15px;
+            color: var(--dark);
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light);
+            border-radius: 10px;
+            display: none;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .lucro-liquido {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--success);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px dashed #ced4da;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Fiesta GNV - Custo Real</h2>
+    
+    <div class="form-group">
+        <label for="km">Km Rodados no Dia:</label>
+        <input type="number" id="km" value="100" placeholder="Ex: 100">
+    </div>
+    
+    <div class="form-group">
+        <label for="ganho">Faturamento Bruto do Dia (R$):</label>
+        <input type="number" id="ganho" value="250" placeholder="Quanto recebeu no app">
+    </div>
+
+    <div class="form-group">
+        <label for="consumo">Consumo Médio GNV (km/m³):</label>
+        <input type="number" id="consumo" value="9" step="0.1">
+    </div>
+
+    <div class="form-group">
+        <label for="preco">Preço do m³ do GNV (R$):</label>
+        <input type="number" id="preco" value="4.39" step="0.01">
+    </div>
+
+    <button onclick="calcularCustoReal()">Calcular Lucro Real</button>
+
+    <div class="results" id="resultadoDiv">
+        <div class="result-item">
+            <span>Custo de GNV (Bomba):</span>
+            <span id="resGnv" style="color: var(--danger); font-weight: bold;">R$ 0,00</span>
+        </div>
+        <div class="result-item">
+            <span>Custos Invisíveis (Manutenção/Depreciação/Taxas):</span>
+            <span id="resInvisivel" style="color: var(--danger);">R$ 0,00</span>
+        </div>
+        <div class="result-item">
+            <span>Custo Total do Dia:</span>
+            <span id="resTotal" style="font-weight: bold;">R$ 0,00</span>
+        </div>
+        <div class="result-item">
+            <span>Custo Real por Km:</span>
+            <span id="resPorKm">R$ 0,00/km</span>
+        </div>
+        <div class="result-item lucro-liquido">
+            <span>LUCRO LÍQUIDO REAL:</span>
+            <span id="resLucro">R$ 0,00</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function calcularCustoReal() {
+    // Pegar valores dos inputs
+    const km = parseFloat(document.getElementById('km').value) || 0;
+    const ganhoBruto = parseFloat(document.getElementById('ganho').value) || 0;
+    const consumoGnv = parseFloat(document.getElementById('consumo').value) || 1;
+    const precoGnv = parseFloat(document.getElementById('preco').value) || 0;
+
+    // Custos fixos por km baseados no New Fiesta 2015 rodando 3.000km/mês
+    const custoManutencaoKm = 0.15;
+    const custoFixoKm = 0.11;
+    const custoDepreciacaoKm = 0.12;
+    const outrosCustosKm = custoManutencaoKm + custardFixoKm + custoDepreciacaoKm; // R$ 0,38
+
+    // Cálculos
+    const custoGnvPorKm = precoGnv / consumoGnv;
+    const custoTotalPorKm = custoGnvPorKm + outrosCustosKm;
+
+    const totalGastoGnv = custoGnvPorKm * km;
+    const totalGastoInvisivel = outrosCustosKm * km;
+    const custoTotalDia = custoTotalPorKm * km;
+    const lucroLiquido = ganhoBruto - custoTotalDia;
+
+    // Atualizar tela
+    document.getElementById('resGnv').innerText = 'R$ ' + totalGastoGnv.toFixed(2);
+    document.getElementById('resInvisivel').innerText = 'R$ ' + totalGastoInvisivel.toFixed(2);
+    document.getElementById('resTotal').innerText = 'R$ ' + custoTotalDia.toFixed(2);
+    document.getElementById('resPorKm').innerText = 'R$ ' + custoTotalPorKm.toFixed(2) + '/km';
+    document.getElementById('resLucro').innerText = 'R$ ' + lucroLiquido.toFixed(2);
+
+    // Mudar cor do lucro se for negativo
+    if(lucroLiquido < 0) {
+        document.getElementById('resLucro').style.color = 'var(--danger)';
+    } else {
+        document.getElementById('resLucro').style.color = 'var(--success)';
+    }
+
+    // Mostrar bloco de resultados
+    document.getElementById('resultadoDiv').style.display = 'block';
+}
+</script>
+<script>
+// Código para registrar o Service Worker se o navegador for compatível
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker registrado com sucesso!', reg))
+      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+  });
+}
+</script>
+
+</body>
+</html>
